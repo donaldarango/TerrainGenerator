@@ -26,8 +26,11 @@ set(IMGUI_SOURCES
 
 include_directories(${IMGUI_DIR} ${IMGUI_BACKENDS_DIR})
 
+file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/src/*.cpp)
+include_directories(src)
+
 add_library(imgui ${IMGUI_SOURCES})
 
-add_executable(TerrainGen src/main.cpp)
+add_executable(TerrainGen ${SOURCES})
 
 target_link_libraries(TerrainGen glad glfw imgui "-framework OpenGL")

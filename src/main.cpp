@@ -14,11 +14,25 @@
 #include "camera.h"
 #include "cube.h"
 
+void processInput(GLFWwindow *window);
+void mouseCallback(GLFWwindow *window, double xpos, double ypos);
+void keyboardCallback(GLFWwindow *window, Camera& camera, float deltaTime);
+
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-void processInput(GLFWwindow *window);
-// static void mouseCallback(GLFWwindow *window, float xpos, float ypos);
+// Camera Settings
+glm::vec3 position(0.0f, 0.0f, 3.0f);
+glm::vec3 up(0.0f, 1.0f, 0.0f);
+float yaw = -90.0f;
+float pitch = 0.0f;
+
+// Mouse Input Info
+float lastX = 400, lastY = 300;
+bool firstMouse = true;
+float deltaTime = 0.0f, lastFrame = 0.0f;
+
+Camera camera(position, up, yaw, pitch);
 
 int main() {
     // Initialize GLFW
@@ -31,16 +45,11 @@ int main() {
         return -1;
     }
 
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  
+    glfwSetCursorPosCallback(window, mouseCallback);
+
     Shader shader("shaders/test.vs", "shaders/test.fs"); 
     shader.use();
-
-    glm::vec3 position(0.0f, 0.0f, 3.0f);
-    glm::vec3 up(0.0f, 1.0f, 0.0f);
-    float yaw = -90.0f;
-    float pitch = 0.0f;
-
-    Camera camera(position, up, yaw, pitch, SCR_WIDTH, SCR_HEIGHT);
-    float deltaTime = 0.0f, lastFrame = 0.0f;
 
     Cube cube; 
 
@@ -52,12 +61,6 @@ int main() {
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
-
-        // Poll events
-        glfwPollEvents();
-        processInput(window);
-        camera.keyboardCallback(window, deltaTime);
-        // camera.processMouseMovement(window, 0, 0, true);
 
         // Render
         render();
@@ -71,6 +74,11 @@ int main() {
 
         // Swap buffers
         glfwSwapBuffers(window);
+
+        // Poll events
+        glfwPollEvents();
+        processInput(window);  
+        keyboardCallback(window, camera, deltaTime);
     }
 
     // Clean up and exit
@@ -84,35 +92,28 @@ void processInput(GLFWwindow *window)
         glfwSetWindowShouldClose(window, true);
 }
 
-// static void mouseCallback(GLFWwindow* window, double xpos, double ypos)
-// {
-//     if (firstMouse) 
-//     {
-//         lastX = xpos;
-//         lastY = ypos;
-//         firstMouse = false;
-//     }
-  
-//     float xoffset = xpos - lastX;
-//     float yoffset = lastY - ypos; 
-//     lastX = xpos;
-//     lastY = ypos;
+void mouseCallback(GLFWwindow *window, double xpos, double ypos) {
+    if (firstMouse) {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
 
-//     float sensitivity = 0.1f;
-//     xoffset *= sensitivity;
-//     yoffset *= sensitivity;
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; 
+    lastX = xpos;
+    lastY = ypos;
 
-//     yaw   += xoffset;
-//     pitch += yoffset;
+    camera.processMouseMovement(xoffset, yoffset);
+}
 
-//     if(pitch > 89.0f)
-//         pitch = 89.0f;
-//     if(pitch < -89.0f)
-//         pitch = -89.0f;
-
-//     glm::vec3 direction;
-//     direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-//     direction.y = sin(glm::radians(pitch));
-//     direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-//     front = glm::normalize(direction);
-// }  
+void keyboardCallback(GLFWwindow *window, Camera& camera, float deltaTime) {
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.processKeyboardInput(FORWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.processKeyboardInput(BACKWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.processKeyboardInput(LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.processKeyboardInput(RIGHT, deltaTime);
+}

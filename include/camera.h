@@ -4,16 +4,21 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
+enum KEYBOARD_INPUT {
+    FORWARD,
+    BACKWARD,
+    LEFT,
+    RIGHT
+};
+
 class Camera {
 public:
-    Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch, unsigned int scrWidth, unsigned int scrHeight);
+    Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch);
 
     glm::mat4 getViewMatrix();
 
-
-    void processMouseMovement(GLFWwindow* window, float xOffset, float yOffset, bool constrainPitch = true);
-    void keyboardCallback(GLFWwindow* window, float deltaTime);
-    static void mouseCallback(GLFWwindow* window, double xpos, double ypos);
+    void processMouseMovement(float xOffset, float yOffset, bool constrainPitch = true);
+    void processKeyboardInput(KEYBOARD_INPUT input, float deltaTime);
 
     // Camera Attributes
     glm::vec3 position;
@@ -27,13 +32,9 @@ public:
     float pitch; // Rotation around the x-axis
     float movementSpeed;
     float mouseSensitivity;
-    float lastX, lastY;
-    
-    bool firstMouse = true;
 
 private:
     void updateCameraVectors();
-
 };
 
 #endif // CAMERA_H

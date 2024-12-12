@@ -17,6 +17,7 @@
 void processInput(GLFWwindow *window);
 void mouseCallback(GLFWwindow *window, double xpos, double ypos);
 void keyboardCallback(GLFWwindow *window, Camera& camera, float deltaTime);
+void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -30,6 +31,7 @@ float pitch = 0.0f;
 // Mouse Input Info
 float lastX = 400, lastY = 300;
 bool firstMouse = true;
+bool mouseHeld = false;
 float deltaTime = 0.0f, lastFrame = 0.0f;
 
 Camera camera(position, up, yaw, pitch);
@@ -45,8 +47,13 @@ int main() {
         return -1;
     }
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  
     glfwSetCursorPosCallback(window, mouseCallback);
+    glfwSetMouseButtonCallback(window, mouseButtonCallback);
+
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
 
     Shader shader("shaders/test.vs", "shaders/test.fs"); 
     shader.use();
@@ -62,6 +69,19 @@ int main() {
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        // Poll events
+        glfwPollEvents();
+        processInput(window);  
+        keyboardCallback(window, camera, deltaTime);
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::Begin("Another Window");   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+        ImGui::Text("Hello from another window!");
+        ImGui::End();
+
         // Render
         render();
 
@@ -72,14 +92,16 @@ int main() {
         glm::mat4 view = camera.getViewMatrix();
         shader.setMat4("view", view);  
 
-        // Swap buffers
-        glfwSwapBuffers(window);
+         ImGui::Render();
+         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        // Poll events
-        glfwPollEvents();
-        processInput(window);  
-        keyboardCallback(window, camera, deltaTime);
+        // Swap buffers
+        glfwSwapBuffers(window);        
     }
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     // Clean up and exit
     terminateGLFW();
@@ -99,12 +121,25 @@ void mouseCallback(GLFWwindow *window, double xpos, double ypos) {
         firstMouse = false;
     }
 
+    if (!mouseHeld) {
+        firstMouse = true;
+        return;
+    }
+
     float xoffset = xpos - lastX;
     float yoffset = lastY - ypos; 
     lastX = xpos;
     lastY = ypos;
 
     camera.processMouseMovement(xoffset, yoffset);
+}
+
+void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+        mouseHeld = true;
+    } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+        mouseHeld = false;
+    }
 }
 
 void keyboardCallback(GLFWwindow *window, Camera& camera, float deltaTime) {

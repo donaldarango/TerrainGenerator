@@ -13,28 +13,34 @@
 #include "renderer.h"
 #include "camera.h"
 #include "cube.h"
+#include "terrain.h"
 
 void processInput(GLFWwindow *window);
 void mouseCallback(GLFWwindow *window, double xpos, double ypos);
 void keyboardCallback(GLFWwindow *window, Camera& camera, float deltaTime);
 void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
+void scrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // Camera Settings
-glm::vec3 position(0.0f, 0.0f, 3.0f);
+glm::vec3 position(0.0f, 50.0f, 100.0f);
 glm::vec3 up(0.0f, 1.0f, 0.0f);
 float yaw = -90.0f;
 float pitch = 0.0f;
+float fov = 45.0f;
 
 // Mouse Input Info
 float lastX = 400, lastY = 300;
 bool firstMouse = true;
 bool mouseHeld = false;
 float deltaTime = 0.0f, lastFrame = 0.0f;
+float movementSpeed = 5.0f;
 
-Camera camera(position, up, yaw, pitch);
+Camera camera(position, up, yaw, pitch, movementSpeed);
+
+TerrainLoader terrain;
 
 int main() {
     // Initialize GLFW
@@ -49,6 +55,7 @@ int main() {
 
     glfwSetCursorPosCallback(window, mouseCallback);
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
+    glfwSetScrollCallback(window, scrollCallback);
 
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
@@ -58,10 +65,8 @@ int main() {
     Shader shader("shaders/test.vs", "shaders/test.fs"); 
     shader.use();
 
-    Cube cube; 
-
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-    shader.setMat4("projection", projection);  
+    terrain.LoadFromFile("heightmaps/heightmap1.png");
+    terrain.InitTerrain();
 
     // Main render loop
     while (!glfwWindowShouldClose(window)) {
@@ -78,17 +83,21 @@ int main() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("Another Window");   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        ImGui::Text("Hello from another window!");
-        ImGui::End();
+        // ImGui::Begin("Another Window");   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+        // ImGui::Text("Hello from another window!");
+        // ImGui::End();
 
         // Render
         render();
 
-        cube.draw(camera);
+        terrain.Render(camera);
+
+        glm::mat4 projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        shader.setMat4("projection", projection);  
 
         glm::mat4 model = glm::mat4(1.0f);
         shader.setMat4("model", model);
+
         glm::mat4 view = camera.getViewMatrix();
         shader.setMat4("view", view);  
 
@@ -151,4 +160,12 @@ void keyboardCallback(GLFWwindow *window, Camera& camera, float deltaTime) {
         camera.processKeyboardInput(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.processKeyboardInput(RIGHT, deltaTime);
+}
+
+void scrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
+    fov -= (float)yoffset;
+    if (fov < 1.0f)
+        fov = 1.0f;
+    if (fov > 45.0f)
+        fov = 45.0f;
 }

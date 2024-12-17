@@ -13,7 +13,7 @@ enum KEYBOARD_INPUT {
 
 class Camera {
 public:
-    Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch);
+    Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch, float movementSpeed = 2.5f);
 
     glm::mat4 getViewMatrix();
 

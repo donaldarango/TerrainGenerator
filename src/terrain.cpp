@@ -1,5 +1,4 @@
 #include "terrain.h"
-#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image/stb_image.h"
 #include <iostream>
 
@@ -10,7 +9,7 @@ void TerrainLoader::LoadFromFile(const char* filename) {
     if (heightmap==NULL) {
         std::cout << "Failed to load heightmap image" << std::endl;
         exit(1);
-    }
+    }   
 
     std::cout << "Heightmap loaded with: Width: " << width << " Height: " << height << " Channels: " << nChannels << std::endl;
 }
@@ -30,6 +29,8 @@ void TerrainLoader::InitTerrain() {
             vertices.push_back( -height/2.0f + i);        // v.x
             vertices.push_back( (int)y * yScale - yShift); // v.y
             vertices.push_back( -width/2.0f + j);        // v.z
+            vertices.push_back( (float)j / width);        // v.u
+            vertices.push_back( (float)i / height);       // v.v
         }
     }
 
@@ -49,11 +50,10 @@ void TerrainLoader::InitTerrain() {
 }
 
 void TerrainLoader::Render(Camera& camera) {
-
     int numStrips = height - 1;
     int numVerticesPerStrip = width * 2; 
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // register VAO
     GLuint terrainVAO, terrainVBO, terrainEBO;
@@ -67,11 +67,19 @@ void TerrainLoader::Render(Camera& camera) {
                 &vertices[0],                          // pointer to first element
                 GL_STATIC_DRAW);
 
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-    glEnableVertexAttribArray(0);
+    int POS_LOC = 0;
+    int TEX_LOC = 1;
+    int stride = 5 * sizeof(float); // 3 for position + 2 for texture coordinates
 
-    glGenBuffers(1, &terrainEBO);
+    // position attribute
+    glVertexAttribPointer(POS_LOC, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
+    glEnableVertexAttribArray(POS_LOC);
+
+    // texture attribute
+    glVertexAttribPointer(TEX_LOC, 2, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(TEX_LOC);
+
+    glGenBuffers(1, &terrainEBO);   
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, terrainEBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
                 indices.size() * sizeof(unsigned int), // size of indices buffer
@@ -86,8 +94,6 @@ void TerrainLoader::Render(Camera& camera) {
         glDrawElements(GL_TRIANGLE_STRIP,   // primitive type
                     numVerticesPerStrip, // number of indices to render
                     GL_UNSIGNED_INT,     // index data type
-                    (void*)(sizeof(unsigned int)
-                                * numVerticesPerStrip
-                                * strip)); // offset to starting index
+                    (void*)(strip * numVerticesPerStrip * sizeof(unsigned int)));
     }
 }

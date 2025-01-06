@@ -13,6 +13,7 @@
 #include "renderer.h"
 #include "camera.h"
 #include "cube.h"
+#include "texture.h"
 #include "terrain.h"
 
 void processInput(GLFWwindow *window);
@@ -43,11 +44,9 @@ Camera camera(position, up, yaw, pitch, movementSpeed);
 TerrainLoader terrain;
 
 int main() {
-    // Initialize GLFW
     GLFWwindow* window = initGLFW(SCR_WIDTH, SCR_HEIGHT, "Terrain Generator");
     if (!window) return -1;
 
-    // Initialize GLAD
     if (!initGLAD()) {
         terminateGLFW();
         return -1;
@@ -62,19 +61,19 @@ int main() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
-    Shader shader("shaders/test.vs", "shaders/test.fs"); 
+    Shader shader("shaders/texture.vs", "shaders/texture.fs"); 
     shader.use();
 
-    terrain.LoadFromFile("heightmaps/heightmap1.png");
+    Texture grassTexture("content/textures/grass.jpg");
+
+    terrain.LoadFromFile("content/heightmaps/heightmap1.png");
     terrain.InitTerrain();
 
-    // Main render loop
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // Poll events
         glfwPollEvents();
         processInput(window);  
         keyboardCallback(window, camera, deltaTime);
@@ -87,12 +86,17 @@ int main() {
         // ImGui::Text("Hello from another window!");
         // ImGui::End();
 
-        // Render
         render();
+
+        // Bind the texture
+        // glActiveTexture(GL_TEXTURE0);
+        // glBindTexture(GL_TEXTURE_2D, grassTexture.getTexture()); // Ensure textureID is the correct texture handle
+
+        shader.setInt("terrainTexture", 0);
 
         terrain.Render(camera);
 
-        glm::mat4 projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
         shader.setMat4("projection", projection);  
 
         glm::mat4 model = glm::mat4(1.0f);
@@ -101,10 +105,9 @@ int main() {
         glm::mat4 view = camera.getViewMatrix();
         shader.setMat4("view", view);  
 
-         ImGui::Render();
-         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        // Swap buffers
         glfwSwapBuffers(window);        
     }
 
@@ -112,7 +115,6 @@ int main() {
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    // Clean up and exit
     terminateGLFW();
     return 0;
 }

@@ -37,7 +37,7 @@ float lastX = 400, lastY = 300;
 bool firstMouse = true;
 bool mouseHeld = false;
 float deltaTime = 0.0f, lastFrame = 0.0f;
-float movementSpeed = 5.0f;
+float movementSpeed = 40.0f;
 
 Camera camera(position, up, yaw, pitch, movementSpeed);
 
@@ -66,7 +66,8 @@ int main() {
 
     Texture grassTexture("content/textures/grass.jpg");
 
-    terrain.LoadFromFile("content/heightmaps/heightmap1.png");
+    // terrain.LoadFromFile("content/heightmaps/heightmap1.png");
+    terrain.LoadFromFile("content/heightmaps/grand_canyon_heightmap_sm.png");
     terrain.InitTerrain();
 
     while (!glfwWindowShouldClose(window)) {

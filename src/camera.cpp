@@ -5,7 +5,7 @@
 
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch, float movementSpeed)
     : position(position), worldUp(up), yaw(yaw), pitch(pitch),
-      movementSpeed(movementSpeed), mouseSensitivity(0.1f) {
+      movementSpeed(movementSpeed), mouseSensitivity(.3f) {
     front = glm::vec3(0.0f, 0.0f, -1.0f);
     updateCameraVectors();
 }

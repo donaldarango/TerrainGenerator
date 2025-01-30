@@ -15,7 +15,9 @@ void TerrainLoader::LoadFromFile(const char* filename) {
 }
 
 void TerrainLoader::InitTerrain() {
-    float yScale = 64.0f / 256.0f, yShift = 16.0f;  // apply a scale+shift to the height data
+    float yScale = 32.0f / 256.0f; 
+    float yShift = 0.0f; 
+
     for(unsigned int i = 0; i < height; i++)
     {
         for(unsigned int j = 0; j < width; j++)
@@ -29,8 +31,8 @@ void TerrainLoader::InitTerrain() {
             vertices.push_back( -height/2.0f + i);        // v.x
             vertices.push_back( (int)y * yScale - yShift); // v.y
             vertices.push_back( -width/2.0f + j);        // v.z
-            vertices.push_back( (float)j / width);        // v.u
-            vertices.push_back( (float)i / height);       // v.v
+            vertices.push_back( 8 * (float)j / width);        // v.u
+            vertices.push_back( 8 * (float)i / height);       // v.v
         }
     }
 

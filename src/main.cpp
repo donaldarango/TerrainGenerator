@@ -10,10 +10,8 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 
-#include "renderer.h"
 #include "camera.h"
-#include "cube.h"
-#include "texture.h"
+#include "texture_manager.h"
 #include "terrain.h"
 
 void processInput(GLFWwindow *window);
@@ -40,7 +38,6 @@ float deltaTime = 0.0f, lastFrame = 0.0f;
 float movementSpeed = 40.0f;
 
 Camera camera(position, up, yaw, pitch, movementSpeed);
-
 TerrainLoader terrain;
 
 int main() {
@@ -64,10 +61,12 @@ int main() {
     Shader shader("shaders/texture.vs", "shaders/texture.fs"); 
     shader.use();
 
-    Texture grassTexture("content/textures/grass.jpg");
+    TextureManager textureManager;
+    textureManager.AddTexture("content/textures/grass.jpg", "grass");
+    textureManager.AddTexture("content/textures/broken_rock.jpg", "broken_rock");
 
-    // terrain.LoadFromFile("content/heightmaps/heightmap1.png");
-    terrain.LoadFromFile("content/heightmaps/grand_canyon_heightmap_sm.png");
+    terrain.LoadFromFile("content/heightmaps/heightmap1.png");
+    // terrain.LoadFromFile("content/heightmaps/grand_canyon_heightmap_sm.png");
     terrain.InitTerrain();
 
     while (!glfwWindowShouldClose(window)) {
@@ -83,15 +82,13 @@ int main() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // ImGui::Begin("Another Window");   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        // ImGui::Text("Hello from another window!");
-        // ImGui::End();
+        ImGui::Begin("Another Window");   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+        ImGui::Text("Hello from another window!");
+        ImGui::End();
 
-        render();
-
-        // Bind the texture
-        // glActiveTexture(GL_TEXTURE0);
-        // glBindTexture(GL_TEXTURE_2D, grassTexture.getTexture()); // Ensure textureID is the correct texture handle
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glEnable(GL_DEPTH_TEST);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shader.setInt("terrainTexture", 0);
 

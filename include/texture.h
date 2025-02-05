@@ -2,14 +2,17 @@
 #define TEXTURE_H
 
 #include <glad/glad.h>
+#include <string>
 
 class Texture {
 public:
     Texture(const char* filename);
     ~Texture();
-    GLuint getTexture();
+    GLuint getTextureHandle();
+    void setTextureHandle(GLuint handle);
 private:
-    GLuint texture;
+    GLuint textureHandle;
+    std::string filename;
 };
 
 #endif 

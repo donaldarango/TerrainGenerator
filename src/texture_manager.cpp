@@ -9,7 +9,7 @@ TextureManager::TextureManager() {
 
 TextureManager::~TextureManager() {
     for (auto const& [key, val] : textures) {
-        delete &val;
+        val->~Texture();
     }
 }
 

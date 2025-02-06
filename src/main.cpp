@@ -58,16 +58,29 @@ int main() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
-    Shader shader("shaders/texture.vs", "shaders/texture.fs"); 
+    // Shader shader("shaders/texture.vs", "shaders/texture.fs"); 
+    Shader shader("shaders/terrain_height.vs", "shaders/terrain_height.fs"); 
     shader.use();
 
     TextureManager textureManager;
-    textureManager.AddTexture("content/textures/grass.jpg", "grass");
-    textureManager.AddTexture("content/textures/broken_rock.jpg", "broken_rock");
+    textureManager.AddTexture("content/textures/ground_dry2_d.jpg", "ground_dry");
+    shader.setInt("Tex0", 0);
+    textureManager.AddTexture("content/textures/grass_green_d.jpg", "grass");
+    shader.setInt("Tex1", 1);
+    textureManager.AddTexture("content/textures/mntn_white_d.jpg", "mntn_side");
+    shader.setInt("Tex2", 2);
+    textureManager.AddTexture("content/textures/snow_mntn2_d.jpg", "mntn_top");
+    shader.setInt("Tex3", 3);
 
     terrain.LoadFromFile("content/heightmaps/heightmap1.png");
     // terrain.LoadFromFile("content/heightmaps/grand_canyon_heightmap_sm.png");
     terrain.InitTerrain();
+    float maxHeight = terrain.getMaxHeight();
+    shader.setFloat("maxHeight", maxHeight);
+    float minHeight = terrain.getMinHeight();
+    shader.setFloat("minHeight", minHeight);
+    
+    std::cout << "Max Height: " << maxHeight << " Min Height: " << minHeight << std::endl;
 
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
@@ -89,8 +102,6 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glEnable(GL_DEPTH_TEST);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        shader.setInt("terrainTexture", 0);
 
         terrain.Render(camera);
 

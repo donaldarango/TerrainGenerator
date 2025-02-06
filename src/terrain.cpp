@@ -15,8 +15,7 @@ void TerrainLoader::LoadFromFile(const char* filename) {
 }
 
 void TerrainLoader::InitTerrain() {
-    float yScale = 32.0f / 256.0f; 
-    float yShift = 0.0f; 
+    float yScale = 32.0f / 256.0f, yShift = 0.0f; 
 
     for(unsigned int i = 0; i < height; i++)
     {
@@ -27,12 +26,17 @@ void TerrainLoader::InitTerrain() {
             // raw height at coordinate
             unsigned char y = texel[0];
 
+            float h = (float)y * yScale - yShift;
+            // update min and max height
+            if (h > maxHeight) maxHeight = h;
+            if (h < minHeight) minHeight = h;
+
             // vertex
             vertices.push_back( -height/2.0f + i);        // v.x
             vertices.push_back( (int)y * yScale - yShift); // v.y
             vertices.push_back( -width/2.0f + j);        // v.z
-            vertices.push_back( 8 * (float)j / width);        // v.u
-            vertices.push_back( 8 * (float)i / height);       // v.v
+            vertices.push_back( 32 * (float)j / width);        // v.u
+            vertices.push_back( 32 * (float)i / height);       // v.v
         }
     }
 

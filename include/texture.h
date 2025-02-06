@@ -8,7 +8,7 @@ class Texture {
 public:
     Texture(const char* filename);
     ~Texture();
-    GLuint getTextureHandle();
+    GLuint getTextureHandle() { return textureHandle; };
     void setTextureHandle(GLuint handle);
 private:
     GLuint textureHandle;
